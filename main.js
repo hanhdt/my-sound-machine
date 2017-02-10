@@ -1,29 +1,30 @@
 'use strict';
 const url = require('url');
 const path = require('path');
-const { app, BrowserWindow, ipcMain } = require('electron');
+const { app, BrowserWindow, ipcMain, globalShortcut } = require('electron');
+
 let mainWindow = null;
 
-initApp(mainWindow, configWindow);
-setUpSubcribeChannels();
+initApp(mainWindow, configWindow, setUpSubcribeChannels);
 
 // Control your application’s event lifecycle.
-function initApp(mwindow, callback) {
-    app.on('ready', function() {
-        callback(mwindow);
+function initApp(mWindow, windowCallback, channelsCallback) {
+    app.on('ready', () => {
+        windowCallback(mWindow, registerGlobalShortcuts);
+        channelsCallback();
     });
     app.on('window-all-closed', () => {
         app.quit();
     });
     app.on('activate', () => {
         if (mwindow === null) {
-            callback(mwindow);
+            windowCallback(mwindow);
         }
     });
 }
 
 // Create and control browser windows.
-function configWindow(window) {
+function configWindow(window, shortcutsCallback) {
     window = new BrowserWindow({
         frame: false,
         height: 700,
@@ -38,9 +39,12 @@ function configWindow(window) {
         protocol: 'file',
         slashes: true
     }));
-    // wait untill when rendered process has done
+    // wait until when rendered process has done
     window.once('ready-to-show', () => {
         window.show();
+    });
+    window.webContents.on('did-finish-load', () => {
+        shortcutsCallback(window.webContents);
     });
     // open DevTools
     // window.webContents.openDevTools();
@@ -58,5 +62,16 @@ function setUpSubcribeChannels() {
     });
     ipcMain.on('open-setting-window', (event, arg) => {
         console.log(arg);
+    });
+}
+
+function registerGlobalShortcuts(contents) {
+    globalShortcut.register('CommandOrControl+1', () => {
+        contents.send('globalShortcut', { msg: "asdnasd" });
+        console.log("1");
+    });
+    globalShortcut.register('CommandOrControl+2', () => {
+        contents.send('globalShortcut', { msg: "asdnasd" });
+        console.log("2");
     });
 }

@@ -10,8 +10,9 @@ let closeButton = document.querySelector('.close');
 let settingButton = document.querySelector('.settings');
 
 setUpSoundButtons(soundButtons, prepareSoundButton);
-sendMessageToChannel(closeButton, 'close-main-window');
-sendMessageToChannel(settingButton, 'open-setting-window');
+sendToMainChannels(closeButton, 'close-main-window');
+sendToMainChannels(settingButton, 'open-setting-window');
+setUpRendererChannels(soundButtons, 'globalShortcut');
 
 // Iterate through sound button reading out the data-sound attributes
 function setUpSoundButtons(buttons, callback) {
@@ -37,8 +38,18 @@ function prepareSoundButton(sButton, sName) {
     });
 }
 
-function sendMessageToChannel(object, channel) {
+// Setup sending message to Main channels
+function sendToMainChannels(object, channel) {
     object.addEventListener('click', function() {
         ipcRenderer.send(channel, object.attributes['class'].value);
+    });
+}
+
+// Setup Renderer channels listen for main messages
+function setUpRendererChannels(obj, channel) {
+    ipcRenderer.on('globalShortcut', (event, message) => {
+        console.log("Renderer: " + message.msg);
+        // let clk = new MouseEvent('click');
+        // obj[Number(message)].dispatchEvent[clk];
     });
 }
