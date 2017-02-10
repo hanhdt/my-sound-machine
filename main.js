@@ -1,10 +1,11 @@
 'use strict';
 const url = require('url');
 const path = require('path');
-let { app, BrowserWindow } = require('electron');
+const { app, BrowserWindow, ipcMain } = require('electron');
 let mainWindow = null;
 
 initApp(mainWindow, configWindow);
+setUpSubcribeChannels();
 
 // Control your application’s event lifecycle.
 function initApp(mwindow, callback) {
@@ -47,5 +48,15 @@ function configWindow(window) {
     // Emmited when the window is closed.
     window.on('closed', () => {
         window = null;
+    });
+}
+
+function setUpSubcribeChannels() {
+    ipcMain.on('close-main-window', (event, arg) => {
+        console.log(arg);
+        app.quit();
+    });
+    ipcMain.on('open-setting-window', (event, arg) => {
+        console.log(arg);
     });
 }

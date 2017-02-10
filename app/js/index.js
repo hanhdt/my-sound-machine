@@ -1,14 +1,17 @@
 'use strict';
 const path = require('path');
+const { ipcRenderer } = require('electron');
 
 // Query select the sound buttons
 let soundButtons = document.querySelectorAll('.button-sound');
 
 // Query select close and settings buttons
-let closeButton = document.getElementsByClassName('.close');
-let settingButton = document.getElementsByClassName('.settings');
+let closeButton = document.querySelector('.close');
+let settingButton = document.querySelector('.settings');
 
 setUpSoundButtons(soundButtons, prepareSoundButton);
+sendMessageToChannel(closeButton, 'close-main-window');
+sendMessageToChannel(settingButton, 'open-setting-window');
 
 // Iterate through sound button reading out the data-sound attributes
 function setUpSoundButtons(buttons, callback) {
@@ -31,5 +34,11 @@ function prepareSoundButton(sButton, sName) {
     sButton.addEventListener('click', function() {
         audio.currentTime = 0;
         audio.play();
+    });
+}
+
+function sendMessageToChannel(object, channel) {
+    object.addEventListener('click', function() {
+        ipcRenderer.send(channel, object.attributes['class'].value);
     });
 }
