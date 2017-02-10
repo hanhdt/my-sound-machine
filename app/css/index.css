@@ -41,7 +41,7 @@ body {
     padding: 0 20px;
 }
 
-.buttons > div {
+.buttons>div {
     text-align: center;
 }
 
@@ -63,7 +63,7 @@ body {
     top: 2px;
 }
 
-.button-sound:hover > span {
+.button-sound:hover>span {
     top: -42px;
 }
 
@@ -72,7 +72,7 @@ body {
     top: 5px;
 }
 
-.button-sound:active > span {
+.button-sound:active>span {
     top: -45px;
 }
 
@@ -98,7 +98,6 @@ body {
     top: 6px;
     width: 32px;
     z-index: 1;
-
     -webkit-app-region: no-drag;
 }
 
@@ -113,4 +112,3 @@ body {
     background-size: 24px 24px;
     right: 6px;
 }
-
