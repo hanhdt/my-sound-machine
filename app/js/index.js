@@ -1,11 +1,16 @@
 'use strict';
 const path = require('path');
+
+// Query select the sound buttons
 let soundButtons = document.querySelectorAll('.button-sound');
+
+// Query select close and settings buttons
 let closeButton = document.getElementsByClassName('.close');
 let settingButton = document.getElementsByClassName('.settings');
 
 setUpSoundButtons(soundButtons, prepareSoundButton);
 
+// Iterate through sound button reading out the data-sound attributes
 function setUpSoundButtons(buttons, callback) {
     for (var i = 0; i < buttons.length; i++) {
         let soundButton = buttons[i];
@@ -15,6 +20,9 @@ function setUpSoundButtons(buttons, callback) {
     }
 }
 
+// Prepare sound button:
+// - Add background image
+// - Add click event that plays audio
 function prepareSoundButton(sButton, sName) {
     sButton.querySelector('span').style.backgroundImage = 'url("img/icons/' + sName + '.png")';
 
