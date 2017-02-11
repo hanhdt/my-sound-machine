@@ -1,7 +1,11 @@
 'use strict';
 const path = require('path');
+const remote = require('electron').remote;
 const { ipcRenderer } = require('electron');
+const Tray = remote.require('electron').Tray;
+const Menu = remote.require('electron').Menu;
 
+let currentWindow = remote.getCurrentWindow();
 // Query select the sound buttons
 let soundButtons = document.querySelectorAll('.button-sound');
 
@@ -9,11 +13,48 @@ let soundButtons = document.querySelectorAll('.button-sound');
 let closeButton = document.querySelector('.close');
 let settingButton = document.querySelector('.settings');
 
+// Tray 
+let trayIcon = null;
+
 // 
 setUpSoundButtons(soundButtons, prepareSoundButton);
 sendToMainChannels(closeButton, 'close-main-window');
 sendToMainChannels(settingButton, 'open-settings-window');
-setUpRendererChannels(soundButtons, 'globalShortcut');
+setUpRendererChannels(soundButtons, 'global-shortcut');
+
+// Tray setup
+if (process.platform === 'drawin') {
+    trayIcon = new Tray(path.join(__dirname, 'img/tray-iconTemplate.png'));
+} else {
+    trayIcon = new Tray(path.join(__dirname, 'img/tray-icon-alt.png'));
+}
+let trayMenuTemplate = [{
+        label: 'Sound Machine',
+        enabled: true,
+        click: function() {
+            if (!currentWindow.isFocused()) {
+                currentWindow.show();
+                currentWindow.center();
+                currentWindow.focus();
+            }
+        }
+    },
+    {
+        label: 'Settings',
+        click: function() {
+            ipcRenderer.send('open-settings-window');
+        }
+    },
+    {
+        label: 'Quit',
+        click: function() {
+            ipcRenderer.send('close-main-window');
+        }
+    }
+];
+let trayMenu = Menu.buildFromTemplate(trayMenuTemplate);
+trayIcon.setToolTip('Sound machine application.');
+trayIcon.setContextMenu(trayMenu);
 
 // Iterate through sound button reading out the data-sound attributes
 function setUpSoundButtons(buttons, callback) {
@@ -48,7 +89,7 @@ function sendToMainChannels(object, channel) {
 
 // Setup Renderer channels listen for main messages
 function setUpRendererChannels(obj, channel) {
-    ipcRenderer.on('global-shortcut', (event, message) => {
+    ipcRenderer.on(channel, (event, message) => {
         console.log("Renderer: " + message.msg);
         let clk = new MouseEvent('click');
         obj[Number(message)].dispatchEvent[clk];

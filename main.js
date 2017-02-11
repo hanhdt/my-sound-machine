@@ -25,6 +25,7 @@ app.on('ready', () => {
     }));
     // wait until when rendered process has done
     mainWindow.once('ready-to-show', () => {
+        mainWindow.center();
         mainWindow.show();
     });
 
