@@ -132,9 +132,15 @@ function setGlobalShortcuts() {
     var shortcutPrefix = shortcutKeysSetting.length === 0 ? '' : shortcutKeysSetting.join('+') + '+';
 
     globalShortcut.register(shortcutPrefix + '1', function() {
-        mainWindow.webContents.send('global-shortcut', 0);
+        mainWindow.webContents.sendToAll('global-shortcut', 0);
     });
     globalShortcut.register(shortcutPrefix + '2', function() {
-        mainWindow.webContents.send('global-shortcut', 1);
+        mainWindow.webContents.sendToAll('global-shortcut', 1);
+    });
+    globalShortcut.register(shortcutPrefix + '3', function() {
+        mainWindow.webContents.sendToAll('global-shortcut', 2);
+    });
+    globalShortcut.register(shortcutPrefix + '4', function() {
+        mainWindow.webContents.sendToAll('global-shortcut', 3);
     });
 }

@@ -16,11 +16,10 @@ let settingButton = document.querySelector('.settings');
 // Tray 
 let trayIcon = null;
 
-// 
-setUpSoundButtons(soundButtons, prepareSoundButton);
+// Call functions from Renderer process
+setUpSoundButtons(soundButtons, prepareSoundButton, setUpRendererChannels);
 sendToMainChannels(closeButton, 'close-main-window');
 sendToMainChannels(settingButton, 'open-settings-window');
-setUpRendererChannels(soundButtons, 'global-shortcut');
 
 // Tray setup
 if (process.platform === 'drawin') {
@@ -57,13 +56,14 @@ trayIcon.setToolTip('Sound machine application.');
 trayIcon.setContextMenu(trayMenu);
 
 // Iterate through sound button reading out the data-sound attributes
-function setUpSoundButtons(buttons, callback) {
+function setUpSoundButtons(buttons, prepareSoundButtonCallback, setUpRendererChannelsCallback) {
     for (var i = 0; i < buttons.length; i++) {
         let soundButton = buttons[i];
         let soundName = soundButton.attributes['data-sound'].value;
 
-        callback(soundButton, soundName);
+        prepareSoundButtonCallback(soundButton, soundName);
     }
+    setUpRendererChannelsCallback(buttons, 'global-shortcut');
 }
 
 // Prepare sound button:
@@ -88,10 +88,10 @@ function sendToMainChannels(object, channel) {
 }
 
 // Setup Renderer channels listen for main messages
-function setUpRendererChannels(obj, channel) {
+function setUpRendererChannels(objects, channel) {
     ipcRenderer.on(channel, (event, message) => {
-        console.log("Renderer: " + message.msg);
+        console.log("Play: " + message + " of " + objects[message].attributes['data-sound'].value);
         let clk = new MouseEvent('click');
-        obj[Number(message)].dispatchEvent[clk];
+        objects[Number(message)].dispatchEvent(clk);
     });
 }
