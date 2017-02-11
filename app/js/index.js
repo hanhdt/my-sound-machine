@@ -48,7 +48,7 @@ function sendToMainChannels(object, channel) {
 
 // Setup Renderer channels listen for main messages
 function setUpRendererChannels(obj, channel) {
-    ipcRenderer.on('globalShortcut', (event, message) => {
+    ipcRenderer.on('global-shortcut', (event, message) => {
         console.log("Renderer: " + message.msg);
         let clk = new MouseEvent('click');
         obj[Number(message)].dispatchEvent[clk];

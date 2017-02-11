@@ -3,30 +3,13 @@ const url = require('url');
 const path = require('path');
 const { app, BrowserWindow, ipcMain, globalShortcut } = require('electron');
 
+
+let configuration = require('./configuration');
 let mainWindow = null;
 let settingsWindow = null;
 
-initApp(mainWindow, configWindow, setUpSubcribeChannels);
-
-// Control your application’s event lifecycle.
-function initApp(mWindow, windowCallback, channelsCallback) {
-    app.on('ready', () => {
-        windowCallback(mWindow, registerGlobalShortcuts);
-        channelsCallback();
-    });
-    app.on('window-all-closed', () => {
-        app.quit();
-    });
-    app.on('activate', () => {
-        if (mwindow === null) {
-            windowCallback(mwindow);
-        }
-    });
-}
-
-// Create and control browser windows.
-function configWindow(window, shortcutsCallback) {
-    window = new BrowserWindow({
+app.on('ready', () => {
+    mainWindow = new BrowserWindow({
         frame: false,
         height: 700,
         width: 368,
@@ -35,24 +18,68 @@ function configWindow(window, shortcutsCallback) {
         resizable: false
     });
     // Load local html file to browser window
-    window.loadURL(url.format({
+    mainWindow.loadURL(url.format({
         pathname: path.join(__dirname, '/app/index.html'),
         protocol: 'file',
         slashes: true
     }));
     // wait until when rendered process has done
-    window.once('ready-to-show', () => {
-        window.show();
+    mainWindow.once('ready-to-show', () => {
+        mainWindow.show();
     });
-    window.webContents.on('did-finish-load', () => {
-        shortcutsCallback(window.webContents);
-    });
+
     // open DevTools
-    // window.webContents.openDevTools();
+    // mWindow.webContents.openDevTools();
 
     // Emmited when the window is closed.
-    window.on('closed', () => {
-        window = null;
+    mainWindow.on('closed', () => {
+        mainWindow = null;
+    });
+
+    setUpSubcribeChannels();
+
+    // Setting global shortcuts
+    if (!configuration.readSettings('shortcutKeys')) {
+        configuration.saveSettings('shortcutKeys', ['Ctrl', 'Shift']);
+    }
+    setGlobalShortcuts();
+});
+app.on('window-all-closed', () => {
+    app.quit();
+});
+app.on('activate', () => {
+    if (mainWindow === null) {
+        windowCallback(mainWindow);
+    }
+});
+
+// Create and control browser windows.
+function configWindow(window) {
+    mWindow = new BrowserWindow({
+        frame: false,
+        height: 700,
+        width: 368,
+        backgroundColor: '#2e2c29',
+        show: false,
+        resizable: false
+    });
+    // Load local html file to browser window
+    mWindow.loadURL(url.format({
+        pathname: path.join(__dirname, '/app/index.html'),
+        protocol: 'file',
+        slashes: true
+    }));
+    // wait until when rendered process has done
+    mWindow.once('ready-to-show', () => {
+        mWindow.show();
+    });
+
+    // open DevTools
+    // mWindow.webContents.openDevTools();
+
+    // Emmited when the window is closed.
+    mWindow.on('closed', () => {
+        mWindow = null;
     });
 }
 
@@ -60,6 +87,7 @@ function setUpSubcribeChannels() {
     ipcMain.on('close-main-window', (event, arg) => {
         app.quit();
     });
+
     ipcMain.on('open-settings-window', (event, arg) => {
         if (settingsWindow) {
             return;
@@ -84,20 +112,28 @@ function setUpSubcribeChannels() {
             settingsWindow = null;
         });
     });
+
     ipcMain.on('close-settings-window', (event, arg) => {
         if (settingsWindow) {
             settingsWindow.close();
         }
     });
+
+    ipcMain.on('set-global-shortcuts', (event, arg) => {
+        setGlobalShortcuts();
+    });
 }
 
-function registerGlobalShortcuts(contents) {
-    globalShortcut.register('CommandOrControl+1', () => {
-        contents.send('globalShortcut', 0);
-        console.log("1");
+function setGlobalShortcuts() {
+    globalShortcut.unregisterAll();
+
+    var shortcutKeysSetting = configuration.readSettings('shortcutKeys');
+    var shortcutPrefix = shortcutKeysSetting.length === 0 ? '' : shortcutKeysSetting.join('+') + '+';
+
+    globalShortcut.register(shortcutPrefix + '1', function() {
+        mainWindow.webContents.send('global-shortcut', 0);
     });
-    globalShortcut.register('CommandOrControl+2', () => {
-        contents.send('globalShortcut', 1);
-        console.log("2");
+    globalShortcut.register(shortcutPrefix + '2', function() {
+        mainWindow.webContents.send('global-shortcut', 1);
     });
 }
