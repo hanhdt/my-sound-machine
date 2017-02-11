@@ -4,6 +4,7 @@ const path = require('path');
 const { app, BrowserWindow, ipcMain, globalShortcut } = require('electron');
 
 let mainWindow = null;
+let settingsWindow = null;
 
 initApp(mainWindow, configWindow, setUpSubcribeChannels);
 
@@ -57,21 +58,46 @@ function configWindow(window, shortcutsCallback) {
 
 function setUpSubcribeChannels() {
     ipcMain.on('close-main-window', (event, arg) => {
-        console.log(arg);
         app.quit();
     });
-    ipcMain.on('open-setting-window', (event, arg) => {
-        console.log(arg);
+    ipcMain.on('open-settings-window', (event, arg) => {
+        if (settingsWindow) {
+            return;
+        }
+
+        settingsWindow = new BrowserWindow({
+            frame: false,
+            height: 200,
+            resizable: true,
+            width: 200
+        });
+
+        settingsWindow.webContents.openDevTools();
+
+        settingsWindow.loadURL(url.format({
+            pathname: path.join(__dirname, '/app/settings.html'),
+            protocol: 'file',
+            slashes: true
+        }));
+
+        settingsWindow.on('closed', () => {
+            settingsWindow = null;
+        });
+    });
+    ipcMain.on('close-settings-window', (event, arg) => {
+        if (settingsWindow) {
+            settingsWindow.close();
+        }
     });
 }
 
 function registerGlobalShortcuts(contents) {
     globalShortcut.register('CommandOrControl+1', () => {
-        contents.send('globalShortcut', { msg: "asdnasd" });
+        contents.send('globalShortcut', 0);
         console.log("1");
     });
     globalShortcut.register('CommandOrControl+2', () => {
-        contents.send('globalShortcut', { msg: "asdnasd" });
+        contents.send('globalShortcut', 1);
         console.log("2");
     });
 }
