@@ -72,7 +72,7 @@ function setUpSubcribeChannels() {
             width: 200
         });
 
-        settingsWindow.webContents.openDevTools();
+        // settingsWindow.webContents.openDevTools();
 
         settingsWindow.loadURL(url.format({
             pathname: path.join(__dirname, '/app/settings.html'),
