@@ -2,7 +2,7 @@
 const url = require('url');
 const path = require('path');
 const { app, BrowserWindow, ipcMain, globalShortcut } = require('electron');
-
+const config = require('./config');
 
 let configuration = require('./configuration');
 let mainWindow = null;
@@ -15,7 +15,8 @@ app.on('ready', () => {
         width: 368,
         backgroundColor: '#2e2c29',
         show: false,
-        resizable: false
+        resizable: false,
+        icon: getIconPath()
     });
     // Load local html file to browser window
     mainWindow.loadURL(url.format({
@@ -143,4 +144,9 @@ function setGlobalShortcuts() {
     globalShortcut.register(shortcutPrefix + '4', function() {
         mainWindow.webContents.sendToAll('global-shortcut', 3);
     });
+}
+
+function getIconPath() {
+    return process.platform === 'win32' ?
+        config.APP_ICON + '.ico' : config.APP_ICON + '.png';
 }
