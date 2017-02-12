@@ -1,6 +1,6 @@
 # **Sound Machine App for the Electron Learning**
 
-I follow this tutorial https://medium.com/developers-writing/building-a-desktop-application-with-electron-204203eeb658
+## I followed this guide - https://medium.com/developers-writing/building-a-desktop-application-with-electron-204203eeb658
 
 ## Here is features list and concepts the app is going to explore are:
  - Basic sound machine (basic browser window instantiation). 
