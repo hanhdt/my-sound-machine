@@ -1,30 +1,130 @@
 'use strict';
+const url = require('url');
+const path = require('path');
+const { app, BrowserWindow, ipcMain, globalShortcut } = require('electron');
+const config = require('./config');
 
-var app = require('app');
-var BrowserWindow = require('browser-window');
-var globalShortcut = require('global-shortcut');
-var configuration = require('./configuration');
-var ipc = require('ipc');
+let configuration = require('./configuration');
+let mainWindow = null;
+let settingsWindow = null;
 
-var mainWindow = null;
-var settingsWindow = null;
-
-app.on('ready', function() {
-    if (!configuration.readSettings('shortcutKeys')) {
-        configuration.saveSettings('shortcutKeys', ['ctrl', 'shift']);
-    }
-
+app.on('ready', () => {
     mainWindow = new BrowserWindow({
         frame: false,
         height: 700,
+        width: 368,
+        backgroundColor: '#2e2c29',
+        show: false,
         resizable: false,
-        width: 368
+        icon: getIconPath()
+    });
+    // Load local html file to browser window
+    mainWindow.loadURL(url.format({
+        pathname: path.join(__dirname, '/app/index.html'),
+        protocol: 'file',
+        slashes: true
+    }));
+    // wait until when rendered process has done
+    mainWindow.once('ready-to-show', () => {
+        mainWindow.center();
+        mainWindow.show();
     });
 
-    mainWindow.loadUrl('file://' + __dirname + '/app/index.html');
+    // open DevTools
+    // mainWindow.webContents.openDevTools();
 
+    // Emmited when the window is closed.
+    mainWindow.on('closed', () => {
+        mainWindow = null;
+    });
+
+    setUpSubcribeChannels();
+
+    // Setting global shortcuts
+    if (!configuration.readSettings('shortcutKeys')) {
+        configuration.saveSettings('shortcutKeys', ['Ctrl', 'Shift']);
+    }
     setGlobalShortcuts();
 });
+app.on('window-all-closed', () => {
+    app.quit();
+});
+app.on('activate', () => {
+    if (mainWindow === null) {
+        windowCallback(mainWindow);
+    }
+});
+
+// Create and control browser windows.
+function configWindow(window) {
+    mWindow = new BrowserWindow({
+        frame: false,
+        height: 700,
+        width: 368,
+        backgroundColor: '#2e2c29',
+        show: false,
+        resizable: false
+    });
+    // Load local html file to browser window
+    mWindow.loadURL(url.format({
+        pathname: path.join(__dirname, '/app/index.html'),
+        protocol: 'file',
+        slashes: true
+    }));
+    // wait until when rendered process has done
+    mWindow.once('ready-to-show', () => {
+        mWindow.show();
+    });
+
+    // open DevTools
+    // mWindow.webContents.openDevTools();
+
+    // Emmited when the window is closed.
+    mWindow.on('closed', () => {
+        mWindow = null;
+    });
+}
+
+function setUpSubcribeChannels() {
+    ipcMain.on('close-main-window', (event, arg) => {
+        app.quit();
+    });
+
+    ipcMain.on('open-settings-window', (event, arg) => {
+        if (settingsWindow) {
+            return;
+        }
+
+        settingsWindow = new BrowserWindow({
+            frame: false,
+            height: 200,
+            resizable: true,
+            width: 200
+        });
+
+        // settingsWindow.webContents.openDevTools();
+
+        settingsWindow.loadURL(url.format({
+            pathname: path.join(__dirname, '/app/settings.html'),
+            protocol: 'file',
+            slashes: true
+        }));
+
+        settingsWindow.on('closed', () => {
+            settingsWindow = null;
+        });
+    });
+
+    ipcMain.on('close-settings-window', (event, arg) => {
+        if (settingsWindow) {
+            settingsWindow.close();
+        }
+    });
+
+    ipcMain.on('set-global-shortcuts', (event, arg) => {
+        setGlobalShortcuts();
+    });
+}
 
 function setGlobalShortcuts() {
     globalShortcut.unregisterAll();
@@ -32,43 +132,21 @@ function setGlobalShortcuts() {
     var shortcutKeysSetting = configuration.readSettings('shortcutKeys');
     var shortcutPrefix = shortcutKeysSetting.length === 0 ? '' : shortcutKeysSetting.join('+') + '+';
 
-    globalShortcut.register(shortcutPrefix + '1', function () {
-        mainWindow.webContents.send('global-shortcut', 0);
+    globalShortcut.register(shortcutPrefix + '1', function() {
+        mainWindow.webContents.sendToAll('global-shortcut', 0);
     });
-    globalShortcut.register(shortcutPrefix + '2', function () {
-        mainWindow.webContents.send('global-shortcut', 1);
+    globalShortcut.register(shortcutPrefix + '2', function() {
+        mainWindow.webContents.sendToAll('global-shortcut', 1);
+    });
+    globalShortcut.register(shortcutPrefix + '3', function() {
+        mainWindow.webContents.sendToAll('global-shortcut', 2);
+    });
+    globalShortcut.register(shortcutPrefix + '4', function() {
+        mainWindow.webContents.sendToAll('global-shortcut', 3);
     });
 }
 
-ipc.on('close-main-window', function () {
-    app.quit();
-});
-
-ipc.on('open-settings-window', function () {
-    if (settingsWindow) {
-        return;
-    }
-
-    settingsWindow = new BrowserWindow({
-        frame: false,
-        height: 200,
-        resizable: false,
-        width: 200
-    });
-
-    settingsWindow.loadUrl('file://' + __dirname + '/app/settings.html');
-
-    settingsWindow.on('closed', function () {
-        settingsWindow = null;
-    });
-});
-
-ipc.on('close-settings-window', function () {
-    if (settingsWindow) {
-        settingsWindow.close();
-    }
-});
-
-ipc.on('set-global-shortcuts', function () {
-    setGlobalShortcuts();
-});
+function getIconPath() {
+    return process.platform === 'win32' ?
+        config.APP_ICON + '.ico' : config.APP_ICON + '.png';
+}

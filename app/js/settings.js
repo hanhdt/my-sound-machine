@@ -1,21 +1,22 @@
 'use strict';
+const { ipcRenderer } = require('electron');
+const configuration = require('../configuration.js');
 
-var ipc = require('ipc');
-var configuration = require('../configuration');
-
-var modifierCheckboxes = document.querySelectorAll('.global-shortcut');
 var closeEl = document.querySelector('.close');
+var modifierCheckboxes = document.querySelectorAll('.global-shortcut');
 
-closeEl.addEventListener('click', function (e) {
-    ipc.send('close-settings-window');
+closeEl.addEventListener('click', (e) => {
+    console.log("click");
+    ipcRenderer.send('close-settings-window', closeEl.attributes['class'].value);
 });
 
 for (var i = 0; i < modifierCheckboxes.length; i++) {
     var shortcutKeys = configuration.readSettings('shortcutKeys');
     var modifierKey = modifierCheckboxes[i].attributes['data-modifier-key'].value;
-    modifierCheckboxes[i].checked = shortcutKeys.indexOf(modifierKey) !== -1;
+    modifierCheckboxes[i].checked = shortcutKeys.indexOf(modifierKey) != -1;
 
-    modifierCheckboxes[i].addEventListener('click', function (e) {
+    // Binding of clicks
+    modifierCheckboxes[i].addEventListener('click', (e) => {
         bindModifierCheckboxes(e);
     });
 }
@@ -27,11 +28,12 @@ function bindModifierCheckboxes(e) {
     if (shortcutKeys.indexOf(modifierKey) !== -1) {
         var shortcutKeyIndex = shortcutKeys.indexOf(modifierKey);
         shortcutKeys.splice(shortcutKeyIndex, 1);
-    }
-    else {
+
+    } else {
         shortcutKeys.push(modifierKey);
     }
 
     configuration.saveSettings('shortcutKeys', shortcutKeys);
-    ipc.send('set-global-shortcuts');
+
+    ipcRenderer.send('set-global-shortcuts');
 }
