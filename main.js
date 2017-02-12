@@ -30,7 +30,7 @@ app.on('ready', () => {
     });
 
     // open DevTools
-    // mWindow.webContents.openDevTools();
+    // mainWindow.webContents.openDevTools();
 
     // Emmited when the window is closed.
     mainWindow.on('closed', () => {
